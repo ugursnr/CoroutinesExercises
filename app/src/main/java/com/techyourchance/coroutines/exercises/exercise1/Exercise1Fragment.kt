@@ -14,6 +14,10 @@ import com.techyourchance.coroutines.R
 import com.techyourchance.coroutines.common.BaseFragment
 import com.techyourchance.coroutines.common.ThreadInfoLogger
 import com.techyourchance.coroutines.home.ScreenReachableFromHome
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class Exercise1Fragment : BaseFragment() {
 
@@ -37,29 +41,41 @@ class Exercise1Fragment : BaseFragment() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {            }
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                btnGetReputation.isEnabled = !s.isNullOrEmpty()
+                btnGetReputation.isEnabled = !s.isNullOrEmpty() // if the text is null returns false else true
             }
 
             override fun afterTextChanged(s: Editable?) {}
         })
 
         btnGetReputation = view.findViewById(R.id.btn_get_reputation)
+        ///////////
         btnGetReputation.setOnClickListener {
-            logThreadInfo("button callback")
             btnGetReputation.isEnabled = false
-            getReputationForUser(edtUserId.text.toString())
-            btnGetReputation.isEnabled = true
+
+            //here could be main since getReputation func is working in another thread. But this works also.
+            CoroutineScope(Dispatchers.Default).launch{
+                logThreadInfo("button callback")
+                val reputation = getReputationForUser(edtUserId.text.toString())
+                withContext(Dispatchers.Main){
+                    Toast.makeText(requireContext(), "reputation: $reputation", Toast.LENGTH_SHORT).show()
+                    btnGetReputation.isEnabled = true
+
+                }
+            }
+
         }
 
         return view
     }
 
-    private fun getReputationForUser(userId: String) {
+    private suspend fun getReputationForUser(userId: String) : Int {
         logThreadInfo("getReputationForUser()")
 
-        val reputation = getReputationEndpoint.getReputation(userId)
+        return withContext(Dispatchers.Default){
+            getReputationEndpoint.getReputation(userId)
 
-        Toast.makeText(requireContext(), "reputation: $reputation", Toast.LENGTH_SHORT).show()
+        }
+
     }
 
     private fun logThreadInfo(message: String) {
