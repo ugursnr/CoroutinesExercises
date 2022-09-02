@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.fragment.app.Fragment
 import com.techyourchance.coroutines.MainActivity
+import kotlinx.coroutines.delay
 
 abstract class BaseFragment : Fragment() {
 
@@ -27,6 +28,8 @@ abstract class BaseFragment : Fragment() {
             toolbarManipulator.showUpButton()
         }
     }
+
+
 
 
 }
